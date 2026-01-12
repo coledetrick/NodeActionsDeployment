@@ -3,6 +3,10 @@ name: Deploy Node.js App
 on:
   workflow_dispatch:
 
+#on:
+  #push:
+    #branch: main
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -10,6 +14,43 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform Init 
+        working-directory: Terraform
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" \
+            -backend-config="key=${{ vars.TF_STATE_KEY }}" \
+            -backend-config="region=${{ vars.AWS_REGION }}" \
+            -backend-config="dynamodb_table=${{ vars.TF_LOCK_TABLE }}" \
+            -backend-config="encrypt=true"
+
+      - name: Terraform Apply 
+        working-directory: Terraform
+        run: |
+          terraform apply -auto-approve
+
+      - name: Create inventory from Terraform output
+        run: |
+          EC2_PUBLIC_IP=$(terraform -chdir=Terraform output -raw ec2_public_ip)
+          echo "EC2_PUBLIC_IP=$EC2_PUBLIC_IP" >> $GITHUB_ENV
+
+          cat > inventory.ini <<EOF
+          [nodejs]
+          ec2 ansible_host=${EC2_PUBLIC_IP} ansible_user=ec2-user ansible_ssh_private_key_file=/home/runner/.ssh/id_rsa
+          EOF
 
       - name: Install Ansible
         run: |
@@ -22,17 +63,9 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.ANSIBLE_KEY }}" > ~/.ssh/id_rsa
           chmod 400 ~/.ssh/id_rsa
-      - name: Create inventory from secret IP
-        run: |
-          cat > inventory.ini <<EOF
-          [nodejs]
-          ec2 ansible_host=${{ vars.EC2_PUBLIC_IP }} ansible_user=ec2-user ansible_ssh_private_key_file=/home/runner/.ssh/id_rsa
-          EOF
-      
+
       - name: Run Ansible Playbook
         env:
           ANSIBLE_HOST_KEY_CHECKING: "False"
         run: |
           ansible-playbook -i inventory.ini Ansible/deploy.yml
-
-
