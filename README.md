@@ -3,7 +3,7 @@
 Automation for provisioning an ec2 and deploying a Node.js app using **Ansible**, **Terraform** and **GitHub Actions (CI/CD)**.
 
 The goal of this project is to fully automate:
-1) infrastructure setup with Terraform,
+1) infrastructure setup and remote state locking with Terraform & s3,
 2) secure config via GitHub Secrets,
 3) server setup (including nginx),
 4) application deployment triggered by GitHub Actions.  
