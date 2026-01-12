@@ -12,10 +12,10 @@ The goal of this project is to fully automate:
 
 ## What’s in this repo
 
-- `.github/workflows/` — GitHub Actions workflow(s) to run provisioning/deploy steps. :contentReference[oaicite:2]{index=2}
-- `Terraform/` — Infrastructure-as-Code for AWS resources (EC2, networking/security, etc.). :contentReference[oaicite:3]{index=3}
-- `Ansible/` — Configuration management (server packages, permissions, nginx setup, app runtime setup). :contentReference[oaicite:4]{index=4}
-- `app.js` / `package.json` — The Node.js app being deployed. :contentReference[oaicite:5]{index=5}
+- `.github/workflows/` — GitHub Actions workflow(s) to run provisioning/deploy steps. 
+- `Terraform/` — Infrastructure-as-Code for AWS resources (EC2, networking/security, etc.). 
+- `Ansible/` — Configuration management (server packages, permissions, nginx setup, app runtime setup). 
+- `app.js` / `package.json` — The Node.js app being deployed.
 
 ---
 
@@ -26,7 +26,7 @@ The goal of this project is to fully automate:
 Key ideas:
 - **IaC** keeps infrastructure repeatable and versioned.
 - **Secrets** are stored in GitHub, not in code.
-- **Permissions & ownership** matter (nginx + app user + deployment paths). :contentReference[oaicite:6]{index=6}
+- **Permissions & ownership** matter (nginx + app user + deployment paths). 
 
 ---
 
